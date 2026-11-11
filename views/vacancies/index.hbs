@@ -1,0 +1,52 @@
+{{> head}}
+{{> nav}}
+<div class="page-header">
+  <h1>Вакансії</h1>
+  {{#if isEmployer}}<a class="btn" href="/vacancies/new">+ Додати вакансію</a>{{/if}}
+  {{#if isAdmin}}<a class="btn" href="/vacancies/new">+ Додати вакансію</a>{{/if}}
+</div>
+
+<form novalidate action="/vacancies" method="GET" class="form" style="flex-direction: row; align-items: flex-end; gap: 10px; max-width: 100%; margin-bottom: 18px;">
+  <label style="flex: 1;">Фільтр за категорією
+    <select name="categoryId" onchange="this.form.submit()">
+      <option value="">Усі категорії</option>
+      {{#each categories}}
+      <option value="{{this.id}}" {{#if (eq ../selectedCategoryId this.id)}}selected{{/if}}>{{this.name}}</option>
+      {{/each}}
+    </select>
+  </label>
+</form>
+
+{{#if vacancies.length}}
+<table>
+  <thead>
+    <tr><th>Назва</th><th>Роботодавець</th><th>Категорія</th><th>Зарплата</th><th>Статус</th><th>Відгуків</th><th></th></tr>
+  </thead>
+  <tbody>
+    {{#each vacancies}}
+    <tr>
+      <td><a href="/vacancies/{{this.id}}">{{this.title}}</a></td>
+      <td>{{this.employer.companyName}}</td>
+      <td>{{this.category.name}}</td>
+      <td class="muted">
+        {{#if this.salaryMin}}{{this.salaryMin}}{{else}}—{{/if}}
+        {{#if this.salaryMax}} - {{this.salaryMax}}{{/if}} {{this.currency}}
+      </td>
+      <td><span class="badge {{this.status}}">{{this.status}}</span></td>
+      <td>{{this._count.applications}}</td>
+      <td class="actions">
+        {{#if (canManage @root.currentUser this)}}
+        <a href="/vacancies/{{this.id}}/edit">Редагувати</a>
+        <form novalidate action="/vacancies/{{this.id}}?_method=DELETE" method="POST" onsubmit="return confirm('Видалити вакансію {{this.title}}?');">
+          <button type="submit">Видалити</button>
+        </form>
+        {{/if}}
+      </td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>
+{{else}}
+<p class="empty">Вакансій ще немає.</p>
+{{/if}}
+{{> footer}}

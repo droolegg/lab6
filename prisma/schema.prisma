@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  REMOTE
+  INTERNSHIP
+  CONTRACT
+}
+
+enum VacancyStatus {
+  DRAFT
+  OPEN
+  CLOSED
+}
+
+enum Role {
+  ADMIN
+  EMPLOYER
+  JOB_SEEKER
+}
+
+enum ApplicationStatus {
+  NEW
+  VIEWED
+  INVITED
+  REJECTED
+}
+
+model Employer {
+  id           Int      @id @default(autoincrement())
+  companyName  String
+  email        String   @unique
+  passwordHash String
+  phone        String?
+  website      String?
+  city         String?
+  description  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  vacancies    Vacancy[]
+  user         User?
+}
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  description String?
+
+  vacancies   Vacancy[]
+}
+
+model Vacancy {
+  id             Int            @id @default(autoincrement())
+  title          String
+  description    String
+  salaryMin      Int?
+  salaryMax      Int?
+  currency       String         @default("UAH")
+  city           String?
+  employmentType EmploymentType @default(FULL_TIME)
+  status         VacancyStatus  @default(OPEN)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  employerId     Int
+  employer       Employer       @relation(fields: [employerId], references: [id], onDelete: Cascade)
+
+  categoryId     Int
+  category       Category       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  applications   Application[]
+}
+
+model JobSeeker {
+  id              Int           @id @default(autoincrement())
+  firstName       String
+  lastName        String
+  email           String        @unique
+  passwordHash    String
+  phone           String?
+  city            String?
+  desiredPosition String?
+  experienceYears Int           @default(0)
+  resume          String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  applications    Application[]
+  user            User?
+}
+
+// Обліковий запис для входу (Лаб. №4). Роль визначає права доступу.
+// ADMIN не має профілю; EMPLOYER пов'язаний з Employer; JOB_SEEKER — з JobSeeker.
+model User {
+  id           Int        @id @default(autoincrement())
+  email        String     @unique
+  passwordHash String
+  role         Role       @default(JOB_SEEKER)
+  createdAt    DateTime   @default(now())
+
+  employerId   Int?       @unique
+  employer     Employer?  @relation(fields: [employerId], references: [id], onDelete: Cascade)
+
+  jobSeekerId  Int?       @unique
+  jobSeeker    JobSeeker? @relation(fields: [jobSeekerId], references: [id], onDelete: Cascade)
+}
+
+model Application {
+  id          Int               @id @default(autoincrement())
+  coverLetter String?
+  status      ApplicationStatus @default(NEW)
+  createdAt   DateTime          @default(now())
+
+  vacancyId   Int
+  vacancy     Vacancy           @relation(fields: [vacancyId], references: [id], onDelete: Cascade)
+
+  jobSeekerId Int
+  jobSeeker   JobSeeker         @relation(fields: [jobSeekerId], references: [id], onDelete: Cascade)
+
+  @@unique([vacancyId, jobSeekerId])
+}

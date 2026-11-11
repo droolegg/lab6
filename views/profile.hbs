@@ -1,0 +1,83 @@
+{{> head}}
+{{> nav}}
+<div class="page-header">
+  <h1>Мій профіль</h1>
+  <span class="role-badge {{currentUser.role}}">{{roleLabel}}</span>
+</div>
+
+<div class="detail-block">
+  <dl>
+    <dt>Email</dt><dd>{{currentUser.email}}</dd>
+    <dt>Роль</dt><dd>{{roleLabel}}</dd>
+    {{#if employer}}
+    <dt>Компанія</dt><dd>{{employer.companyName}}</dd>
+    <dt>Місто</dt><dd>{{#if employer.city}}{{employer.city}}{{else}}не вказано{{/if}}</dd>
+    {{/if}}
+    {{#if jobSeeker}}
+    <dt>Ім'я</dt><dd>{{jobSeeker.firstName}} {{jobSeeker.lastName}}</dd>
+    <dt>Бажана посада</dt><dd>{{#if jobSeeker.desiredPosition}}{{jobSeeker.desiredPosition}}{{else}}не вказано{{/if}}</dd>
+    <dt>Досвід</dt><dd>{{jobSeeker.experienceYears}} р.</dd>
+    {{/if}}
+  </dl>
+</div>
+
+{{#if employer}}
+<p><a class="btn secondary" href="/employers/{{employer.id}}/edit">Редагувати профіль</a>
+<a class="btn" href="/vacancies/new">+ Нова вакансія</a></p>
+<h2>Мої вакансії ({{vacancies.length}})</h2>
+{{#if vacancies.length}}
+<table>
+  <thead><tr><th>Назва</th><th>Категорія</th><th>Статус</th><th>Відгуків</th><th></th></tr></thead>
+  <tbody>
+    {{#each vacancies}}
+    <tr>
+      <td><a href="/vacancies/{{this.id}}">{{this.title}}</a></td>
+      <td>{{this.category.name}}</td>
+      <td><span class="badge {{this.status}}">{{this.status}}</span></td>
+      <td>{{this._count.applications}}</td>
+      <td class="actions"><a href="/vacancies/{{this.id}}/edit">Редагувати</a></td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>
+{{else}}
+<p class="empty">Ви ще не опублікували жодної вакансії.</p>
+{{/if}}
+{{/if}}
+
+{{#if jobSeeker}}
+<p><a class="btn secondary" href="/jobseekers/{{jobSeeker.id}}/edit">Редагувати профіль</a></p>
+<h2>Мої відгуки ({{applications.length}})</h2>
+{{#if applications.length}}
+<table>
+  <thead><tr><th>Вакансія</th><th>Роботодавець</th><th>Статус</th><th>Дата</th><th></th></tr></thead>
+  <tbody>
+    {{#each applications}}
+    <tr>
+      <td><a href="/vacancies/{{this.vacancy.id}}">{{this.vacancy.title}}</a></td>
+      <td>{{this.vacancy.employer.companyName}}</td>
+      <td><span class="badge {{this.status}}">{{this.status}}</span></td>
+      <td class="muted">{{formatDate this.createdAt}}</td>
+      <td class="actions">
+        <form novalidate action="/applications/{{this.id}}?_method=DELETE" method="POST" onsubmit="return confirm('Видалити відгук?');">
+          <button type="submit">Видалити</button>
+        </form>
+      </td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>
+{{else}}
+<p class="empty">Ви ще не подавали відгуків. <a href="/vacancies">Перегляньте вакансії</a>.</p>
+{{/if}}
+{{/if}}
+
+{{#if stats}}
+<h2>Статистика системи</h2>
+<div class="detail-block"><dl>
+  <dt>Користувачів</dt><dd>{{stats.users}}</dd>
+  <dt>Вакансій</dt><dd>{{stats.vacancies}}</dd>
+  <dt>Відгуків</dt><dd>{{stats.applications}}</dd>
+</dl></div>
+{{/if}}
+{{> footer}}

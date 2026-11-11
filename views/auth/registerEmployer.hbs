@@ -1,0 +1,36 @@
+{{> head}}
+{{> nav}}
+<h1>Реєстрація роботодавця</h1>
+{{> errors}}
+<form novalidate action="/register/employer" method="POST" class="form">
+  <label>Назва компанії
+    <input type="text" name="companyName" value="{{values.companyName}}">
+  </label>
+  <label>Email
+    <input type="text" name="email" value="{{values.email}}">
+  </label>
+  <div class="form-row">
+    <label>Пароль
+      <input type="password" name="password">
+    </label>
+    <label>Повторіть пароль
+      <input type="password" name="passwordConfirm">
+    </label>
+  </div>
+  <div class="form-row">
+    <label>Телефон
+      <input type="text" name="phone" value="{{values.phone}}">
+    </label>
+    <label>Місто
+      <input type="text" name="city" value="{{values.city}}">
+    </label>
+  </div>
+  <label>Сайт
+    <input type="text" name="website" value="{{values.website}}">
+  </label>
+  <label>Опис компанії
+    <textarea name="description" rows="3">{{values.description}}</textarea>
+  </label>
+  <button type="submit" class="btn">Зареєструватися</button>
+</form>
+{{> footer}}

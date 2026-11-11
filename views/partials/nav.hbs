@@ -1,0 +1,26 @@
+<header class="nav">
+  <a href="/" class="logo">Вакансії</a>
+  <nav>
+    <a href="/vacancies">Вакансії</a>
+    <a href="/categories">Категорії</a>
+    {{#if isAdmin}}<a href="/employers">Роботодавці</a>{{/if}}
+    {{#if isAdmin}}<a href="/jobseekers">Шукачі роботи</a>{{/if}}
+    {{#if isEmployer}}<a href="/jobseekers">Шукачі роботи</a>{{/if}}
+    {{#if isAdmin}}<a href="/admin" class="admin-link">Адмін-панель</a>{{/if}}
+    <a href="/api-tester.html">Тестер API</a>
+  </nav>
+  <div class="nav-user">
+    {{#if isAuth}}
+      <a href="/profile">{{currentUser.displayName}}</a>
+      <span class="role-badge {{currentUser.role}}">{{roleLabel}}</span>
+      <form novalidate action="/logout" method="POST" class="inline-form">
+        <button type="submit" class="link-btn">Вийти</button>
+      </form>
+    {{else}}
+      <span class="role-badge VISITOR">{{roleLabel}}</span>
+      <a href="/login">Увійти</a>
+      <a href="/register">Реєстрація</a>
+    {{/if}}
+  </div>
+</header>
+<main class="container">

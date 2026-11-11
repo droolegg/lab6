@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Тестер REST API · Вакансії</title>
+<style>
+  :root { --bg:#0f1720; --surface:#17212b; --border:#2a3644; --text:#e6edf3; --muted:#8b9bab; --accent:#4f8cff; --ok:#3fb950; --bad:#e5484d; --warn:#d29922; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); font-size:14px; }
+  header { padding:12px 20px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; gap:16px; align-items:center; }
+  header h1 { font-size:16px; margin:0; color:var(--accent); }
+  header a { color:var(--muted); text-decoration:none; font-size:13px; }
+  header .spacer { margin-left:auto; }
+  .layout { display:grid; grid-template-columns:340px 1fr; min-height:calc(100vh - 49px); }
+  aside { background:var(--surface); border-right:1px solid var(--border); padding:10px 0; overflow:auto; max-height:calc(100vh - 49px); }
+  aside h3 { margin:12px 16px 4px; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+  .preset { display:flex; gap:8px; padding:6px 16px; cursor:pointer; align-items:baseline; }
+  .preset:hover, .preset.active { background:rgba(79,140,255,.12); }
+  .m { font-size:11px; font-weight:700; width:50px; flex:none; }
+  .m.GET{color:var(--ok)} .m.POST{color:var(--warn)} .m.PUT{color:var(--accent)} .m.PATCH{color:#a371f7} .m.DELETE{color:var(--bad)}
+  .pname { font-size:13px; }
+  .pdot { margin-left:auto; flex:none; }
+  main { padding:18px 22px; overflow:auto; }
+  .bar { display:flex; gap:8px; }
+  select, input, textarea, button { font-family:inherit; font-size:14px; background:#0f1720; color:var(--text); border:1px solid var(--border); border-radius:6px; padding:8px 10px; }
+  input#url { flex:1; font-family:Consolas,monospace; }
+  button { cursor:pointer; background:var(--accent); border-color:var(--accent); color:#fff; }
+  button.sec { background:var(--border); border-color:var(--border); }
+  textarea { width:100%; height:150px; font-family:Consolas,monospace; font-size:13px; margin-top:8px; }
+  label.cap { display:block; margin-top:12px; color:var(--muted); font-size:12px; }
+  .status { margin-top:16px; padding:10px 14px; background:var(--surface); border:1px solid var(--border); border-radius:8px; display:flex; gap:18px; align-items:center; flex-wrap:wrap; }
+  .code { font-size:18px; font-weight:700; }
+  .c2{color:var(--ok)} .c4{color:var(--warn)} .c5{color:var(--bad)}
+  .badge { font-size:12px; padding:2px 8px; border-radius:10px; }
+  .pass { background:rgba(63,185,80,.2); color:var(--ok); } .fail { background:rgba(229,72,77,.2); color:var(--bad); }
+  pre { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:12px 14px; overflow:auto; margin:8px 0 0; font-family:Consolas,monospace; font-size:13px; max-height:420px; white-space:pre-wrap; word-break:break-word; }
+  .muted { color:var(--muted); font-size:12px; }
+  table { border-collapse:collapse; width:100%; margin-top:10px; background:var(--surface); border:1px solid var(--border); }
+  td, th { text-align:left; padding:5px 10px; border-bottom:1px solid var(--border); font-size:13px; }
+  th { color:var(--muted); }
+  .sum { margin-top:12px; font-size:16px; font-weight:700; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Тестер REST API</h1>
+  <a href="/">← на сайт</a>
+  <a href="/api" target="_blank">GET /api</a>
+  <span class="spacer muted">Сесія (cookie) зберігається автоматично, як у Postman</span>
+</header>
+<div class="layout">
+  <aside id="list"></aside>
+  <main>
+    <div class="bar">
+      <select id="method"><option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option></select>
+      <input id="url" value="/api" spellcheck="false">
+      <button id="send">Send</button>
+      <button id="runAll" class="sec">▶ Запустити всі</button>
+    </div>
+    <label class="cap">Body (JSON) — для POST / PUT / PATCH</label>
+    <textarea id="body" spellcheck="false" placeholder="{ }"></textarea>
+
+    <div class="status" id="status" hidden>
+      <span class="code" id="code"></span>
+      <span id="expect"></span>
+      <span class="muted" id="time"></span>
+      <span class="muted" id="hdrs"></span>
+    </div>
+    <pre id="out" hidden></pre>
+
+    <div id="runBox" hidden>
+      <div class="sum" id="sum"></div>
+      <table><thead><tr><th></th><th>Запит</th><th>Очікувано</th><th>Отримано</th></tr></thead><tbody id="rows"></tbody></table>
+    </div>
+    <p class="muted">Змінні в запитах ({{appId}}, {{vacancyId}}, {{catId}}, {{empId}}) підставляються автоматично з відповідей попередніх запитів: <span id="vars">—</span></p>
+  </main>
+</div>
+<script>
+const PRESETS = [{"group": "1. Публічні запити (без входу)", "name": "GET /api — опис API", "method": "GET", "path": "/api/", "body": null, "expect": 200, "save": null}, {"group": "1. Публічні запити (без входу)", "name": "GET categories — список", "method": "GET", "path": "/api/categories", "body": null, "expect": 200, "save": null}, {"group": "1. Публічні запити (без входу)", "name": "GET categories/1", "method": "GET", "path": "/api/categories/1", "body": null, "expect": 200, "save": null}, {"group": "1. Публічні запити (без входу)", "name": "GET vacancies — список (лише OPEN)", "method": "GET", "path": "/api/vacancies", "body": null, "expect": 200, "save": null}, {"group": "1. Публічні запити (без входу)", "name": "GET vacancies — фільтри, сортування, сторінки", "method": "GET", "path": "/api/vacancies?categoryId=1&q=Node&sort=createdAt&order=desc&page=1&limit=5", "body": null, "expect": 200, "save": null}, {"group": "1. Публічні запити (без входу)", "name": "GET vacancies/1", "method": "GET", "path": "/api/vacancies/1", "body": null, "expect": 200, "save": null}, {"group": "1. Публічні запити (без входу)", "name": "GET vacancies/2 — чернетка прихована → 404", "method": "GET", "path": "/api/vacancies/2", "body": null, "expect": 404, "save": null}, {"group": "1. Публічні запити (без входу)", "name": "POST categories без входу → 401", "method": "POST", "path": "/api/categories", "body": "{\n  \"name\": \"Тест\"\n}", "expect": 401, "save": null}, {"group": "1. Публічні запити (без входу)", "name": "POST vacancies без входу → 401", "method": "POST", "path": "/api/vacancies", "body": "{\n  \"title\": \"x\"\n}", "expect": 401, "save": null}, {"group": "1. Публічні запити (без входу)", "name": "GET /api/unknown → JSON 404", "method": "GET", "path": "/api/unknown", "body": null, "expect": 404, "save": null}, {"group": "2. Шукач роботи", "name": "POST auth/login (seeker)", "method": "POST", "path": "/api/auth/login", "body": "{\n  \"email\": \"seeker@example.com\",\n  \"password\": \"seeker123\"\n}", "expect": 200, "save": null}, {"group": "2. Шукач роботи", "name": "GET auth/me", "method": "GET", "path": "/api/auth/me", "body": null, "expect": 200, "save": null}, {"group": "2. Шукач роботи", "name": "POST categories (seeker) → 403", "method": "POST", "path": "/api/categories", "body": "{\n  \"name\": \"Тест\"\n}", "expect": 403, "save": null}, {"group": "2. Шукач роботи", "name": "POST vacancies (seeker) → 403", "method": "POST", "path": "/api/vacancies", "body": "{\n  \"title\": \"x\"\n}", "expect": 403, "save": null}, {"group": "2. Шукач роботи", "name": "POST applications — подати відгук → 201", "method": "POST", "path": "/api/applications", "body": "{\n  \"vacancyId\": 3,\n  \"coverLetter\": \"Хочу працювати у вашій команді.\"\n}", "expect": 201, "save": "appId"}, {"group": "2. Шукач роботи", "name": "POST applications — дубль → 409", "method": "POST", "path": "/api/applications", "body": "{\n  \"vacancyId\": 3\n}", "expect": 409, "save": null}, {"group": "2. Шукач роботи", "name": "POST applications — на чернетку → 400", "method": "POST", "path": "/api/applications", "body": "{\n  \"vacancyId\": 2\n}", "expect": 400, "save": null}, {"group": "2. Шукач роботи", "name": "GET applications — мої відгуки", "method": "GET", "path": "/api/applications", "body": null, "expect": 200, "save": null}, {"group": "2. Шукач роботи", "name": "DELETE applications/{{appId}} → 204", "method": "DELETE", "path": "/api/applications/{{appId}}", "body": null, "expect": 204, "save": null}, {"group": "2. Шукач роботи", "name": "POST auth/logout → 204", "method": "POST", "path": "/api/auth/logout", "body": null, "expect": 204, "save": null}, {"group": "2. Шукач роботи", "name": "GET auth/me після виходу → 401", "method": "GET", "path": "/api/auth/me", "body": null, "expect": 401, "save": null}, {"group": "3. Роботодавець", "name": "POST auth/login (employer)", "method": "POST", "path": "/api/auth/login", "body": "{\n  \"email\": \"employer@example.com\",\n  \"password\": \"employer123\"\n}", "expect": 200, "save": null}, {"group": "3. Роботодавець", "name": "POST vacancies — створити → 201", "method": "POST", "path": "/api/vacancies", "body": "{\n  \"title\": \"DevOps інженер\",\n  \"description\": \"Підтримка CI/CD та хмарної інфраструктури.\",\n  \"salaryMin\": 40000,\n  \"salaryMax\": 60000,\n  \"currency\": \"UAH\",\n  \"city\": \"Львів\",\n  \"employmentType\": \"REMOTE\",\n  \"status\": \"DRAFT\",\n  \"categoryId\": 1\n}", "expect": 201, "save": "vacancyId"}, {"group": "3. Роботодавець", "name": "POST vacancies — помилки валідації → 400", "method": "POST", "path": "/api/vacancies", "body": "{\n  \"title\": \"ab\",\n  \"description\": \"коротко\",\n  \"employmentType\": \"XXX\",\n  \"categoryId\": 999\n}", "expect": 400, "save": null}, {"group": "3. Роботодавець", "name": "PATCH vacancies/{{vacancyId}} — відкрити → 200", "method": "PATCH", "path": "/api/vacancies/{{vacancyId}}", "body": "{\n  \"status\": \"OPEN\"\n}", "expect": 200, "save": null}, {"group": "3. Роботодавець", "name": "PUT vacancies/{{vacancyId}} — повна заміна → 200", "method": "PUT", "path": "/api/vacancies/{{vacancyId}}", "body": "{\n  \"title\": \"DevOps інженер (Senior)\",\n  \"description\": \"Підтримка CI/CD та хмарної інфраструктури.\",\n  \"salaryMin\": 50000,\n  \"salaryMax\": 80000,\n  \"currency\": \"UAH\",\n  \"city\": \"Київ\",\n  \"employmentType\": \"FULL_TIME\",\n  \"status\": \"OPEN\",\n  \"categoryId\": 1\n}", "expect": 200, "save": null}, {"group": "3. Роботодавець", "name": "PATCH vacancies/3 — чужа вакансія → 403", "method": "PATCH", "path": "/api/vacancies/3", "body": "{\n  \"status\": \"CLOSED\"\n}", "expect": 403, "save": null}, {"group": "3. Роботодавець", "name": "GET vacancies/1/applications — відгуки на мою вакансію", "method": "GET", "path": "/api/vacancies/1/applications", "body": null, "expect": 200, "save": null}, {"group": "3. Роботодавець", "name": "PATCH applications/1 — змінити статус → 200", "method": "PATCH", "path": "/api/applications/1", "body": "{\n  \"status\": \"VIEWED\"\n}", "expect": 200, "save": null}, {"group": "3. Роботодавець", "name": "GET employers — лише адмін → 403", "method": "GET", "path": "/api/employers", "body": null, "expect": 403, "save": null}, {"group": "3. Роботодавець", "name": "DELETE vacancies/{{vacancyId}} → 204", "method": "DELETE", "path": "/api/vacancies/{{vacancyId}}", "body": null, "expect": 204, "save": null}, {"group": "3. Роботодавець", "name": "POST auth/logout → 204", "method": "POST", "path": "/api/auth/logout", "body": null, "expect": 204, "save": null}, {"group": "4. Адміністратор", "name": "POST auth/login (admin)", "method": "POST", "path": "/api/auth/login", "body": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"admin123\"\n}", "expect": 200, "save": null}, {"group": "4. Адміністратор", "name": "GET employers", "method": "GET", "path": "/api/employers", "body": null, "expect": 200, "save": null}, {"group": "4. Адміністратор", "name": "GET jobseekers", "method": "GET", "path": "/api/jobseekers", "body": null, "expect": 200, "save": null}, {"group": "4. Адміністратор", "name": "POST categories → 201", "method": "POST", "path": "/api/categories", "body": "{\n  \"name\": \"Дизайн {{$timestamp}}\",\n  \"description\": \"UI/UX, графіка\"\n}", "expect": 201, "save": "catId"}, {"group": "4. Адміністратор", "name": "POST categories — порожня назва → 400", "method": "POST", "path": "/api/categories", "body": "{\n  \"name\": \"\"\n}", "expect": 400, "save": null}, {"group": "4. Адміністратор", "name": "PUT categories/{{catId}} → 200", "method": "PUT", "path": "/api/categories/{{catId}}", "body": "{\n  \"name\": \"Дизайн та UX {{$timestamp}}\",\n  \"description\": \"Оновлений опис\"\n}", "expect": 200, "save": null}, {"group": "4. Адміністратор", "name": "PATCH categories/{{catId}} → 200", "method": "PATCH", "path": "/api/categories/{{catId}}", "body": "{\n  \"description\": \"Часткове оновлення\"\n}", "expect": 200, "save": null}, {"group": "4. Адміністратор", "name": "DELETE categories/{{catId}} → 204", "method": "DELETE", "path": "/api/categories/{{catId}}", "body": null, "expect": 204, "save": null}, {"group": "4. Адміністратор", "name": "DELETE categories/1 — є вакансії → 409", "method": "DELETE", "path": "/api/categories/1", "body": null, "expect": 409, "save": null}, {"group": "4. Адміністратор", "name": "POST employers → 201", "method": "POST", "path": "/api/employers", "body": "{\n  \"email\": \"firm{{$timestamp}}@example.com\",\n  \"password\": \"secret123\",\n  \"companyName\": \"NewFirm\",\n  \"city\": \"Одеса\"\n}", "expect": 201, "save": "empId"}, {"group": "4. Адміністратор", "name": "DELETE employers/{{empId}} → 204", "method": "DELETE", "path": "/api/employers/{{empId}}", "body": null, "expect": 204, "save": null}, {"group": "4. Адміністратор", "name": "POST auth/logout → 204", "method": "POST", "path": "/api/auth/logout", "body": null, "expect": 204, "save": null}];
+const vars = {};
+const $ = (id) => document.getElementById(id);
+let current = null;
+
+const sub = (s) => (s || '').replace(/\{\{(\$?\w+)\}\}/g, (m, k) => (k === '$timestamp' ? Date.now() : (vars[k] !== undefined ? vars[k] : m)));
+const showVars = () => { $('vars').textContent = Object.keys(vars).length ? Object.entries(vars).map(([k, v]) => k + '=' + v).join(', ') : '—'; };
+
+// ---- список запитів ----
+let lastGroup = '';
+PRESETS.forEach((p, i) => {
+  if (p.group !== lastGroup) { const h = document.createElement('h3'); h.textContent = p.group; $('list').appendChild(h); lastGroup = p.group; }
+  const d = document.createElement('div'); d.className = 'preset'; d.id = 'p' + i;
+  d.innerHTML = '<span class="m ' + p.method + '">' + p.method + '</span><span class="pname"></span><span class="pdot"></span>';
+  d.querySelector('.pname').textContent = p.name;
+  d.onclick = () => load(i);
+  $('list').appendChild(d);
+});
+
+function load(i) {
+  current = i; const p = PRESETS[i];
+  document.querySelectorAll('.preset').forEach((e) => e.classList.remove('active'));
+  $('p' + i).classList.add('active');
+  $('method').value = p.method; $('url').value = p.path; $('body').value = p.body || '';
+}
+
+// ---- відправка запиту ----
+async function request(method, url, bodyText) {
+  const opt = { method, headers: {} };
+  if (bodyText && bodyText.trim() && method !== 'GET' && method !== 'DELETE') {
+    opt.headers['Content-Type'] = 'application/json';
+    opt.body = sub(bodyText);
+  }
+  const t0 = performance.now();
+  const res = await fetch(sub(url), opt);
+  const text = await res.text();
+  let pretty = text; let json = null;
+  try { json = JSON.parse(text); pretty = JSON.stringify(json, null, 2); } catch (e) { /* не JSON */ }
+  return { res, json, pretty, ms: Math.round(performance.now() - t0) };
+}
+
+function render(r, expect) {
+  $('status').hidden = false; $('out').hidden = false;
+  const c = $('code'); c.textContent = r.res.status + ' ' + r.res.statusText;
+  c.className = 'code c' + String(r.res.status)[0];
+  const e = $('expect');
+  if (expect) { const ok = r.res.status === expect; e.innerHTML = '<span class="badge ' + (ok ? 'pass' : 'fail') + '">' + (ok ? '✓ очікувано ' : '✗ очікувано ') + expect + '</span>'; } else e.innerHTML = '';
+  $('time').textContent = r.ms + ' ms';
+  const loc = r.res.headers.get('Location');
+  $('hdrs').textContent = 'Content-Type: ' + (r.res.headers.get('Content-Type') || '—') + (loc ? '   ·   Location: ' + loc : '');
+  $('out').textContent = r.pretty || '(порожня відповідь)';
+}
+
+function saveVar(p, r) {
+  if (p && p.save && r.res.status < 300 && r.json && r.json.id !== undefined) { vars[p.save] = r.json.id; showVars(); }
+}
+
+$('send').onclick = async () => {
+  try {
+    const p = current !== null ? PRESETS[current] : null;
+    const r = await request($('method').value, $('url').value, $('body').value);
+    render(r, p && p.method === $('method').value ? p.expect : null);
+    saveVar(p, r);
+    if (p) $('p' + current).querySelector('.pdot').textContent = r.res.status === p.expect ? '✓' : '✗';
+  } catch (e) { $('status').hidden = false; $('out').hidden = false; $('code').textContent = 'Помилка'; $('code').className = 'code c5'; $('out').textContent = String(e); }
+};
+
+// ---- запуск усіх запитів по порядку ----
+$('runAll').onclick = async () => {
+  $('runBox').hidden = false; $('rows').innerHTML = ''; let passed = 0;
+  for (let i = 0; i < PRESETS.length; i++) {
+    const p = PRESETS[i]; let got = '—'; let ok = false;
+    try {
+      const r = await request(p.method, p.path, p.body);
+      got = r.res.status; ok = got === p.expect; saveVar(p, r);
+      load(i); render(r, p.expect);
+    } catch (e) { got = 'err'; }
+    if (ok) passed++;
+    $('p' + i).querySelector('.pdot').textContent = ok ? '✓' : '✗';
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + (ok ? '✅' : '❌') + '</td><td></td><td>' + p.expect + '</td><td class="' + (ok ? 'c2' : 'c5') + '">' + got + '</td>';
+    tr.children[1].textContent = p.name;
+    $('rows').appendChild(tr);
+    $('sum').textContent = 'Passed ' + passed + ' / ' + PRESETS.length;
+    $('sum').className = 'sum ' + (passed === PRESETS.length ? 'c2' : 'c4');
+  }
+};
+load(0); showVars();
+</script>
+</body>
+</html>

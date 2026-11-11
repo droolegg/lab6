@@ -1,0 +1,54 @@
+{{> head}}
+{{> nav}}
+{{> adminMenu}}
+<div class="page-header">
+  <h1>{{resource.title}} <span class="muted count">({{total}})</span></h1>
+  <a class="btn" href="/admin/{{resource.key}}/new">+ Додати {{resource.singular}}</a>
+</div>
+
+<form novalidate action="/admin/{{resource.key}}" method="GET" class="search-form">
+  <input type="text" name="q" value="{{q}}" placeholder="Пошук…">
+  <button type="submit" class="btn secondary">Знайти</button>
+  {{#if q}}<a href="/admin/{{resource.key}}" class="muted">Скинути</a>{{/if}}
+</form>
+
+{{#if rows.length}}
+<table>
+  <thead>
+    <tr>{{#each columns}}<th>{{this}}</th>{{/each}}<th></th></tr>
+  </thead>
+  <tbody>
+    {{#each rows}}
+    <tr>
+      {{#each this.cells}}
+      <td class="{{#if this.muted}}muted{{/if}}">
+        {{#if this.badge}}<span class="badge {{this.badge}}">{{this.text}}</span>
+        {{else}}{{#if this.role}}<span class="role-badge {{this.role}}">{{this.text}}</span>
+        {{else}}{{this.text}}{{/if}}{{/if}}
+      </td>
+      {{/each}}
+      <td class="actions">
+        <a href="/admin/{{@root.resource.key}}/{{this.id}}/edit">Редагувати</a>
+        {{#if this.canDelete}}
+        <form novalidate action="/admin/{{@root.resource.key}}/{{this.id}}?_method=DELETE" method="POST"
+              data-confirm="Видалити запис №{{this.id}}? {{@root.resource.deleteWarning}}">
+          <button type="submit">Видалити</button>
+        </form>
+        {{/if}}
+      </td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>
+
+{{#if pagination.show}}
+<div class="pagination">
+  {{#if pagination.hasPrev}}<a href="/admin/{{resource.key}}?page={{pagination.prev}}&q={{qEncoded}}">← Назад</a>{{/if}}
+  <span class="muted">Сторінка {{pagination.page}} з {{pagination.totalPages}}</span>
+  {{#if pagination.hasNext}}<a href="/admin/{{resource.key}}?page={{pagination.next}}&q={{qEncoded}}">Далі →</a>{{/if}}
+</div>
+{{/if}}
+{{else}}
+<p class="empty">Записів не знайдено.</p>
+{{/if}}
+{{> footer}}

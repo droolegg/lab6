@@ -1,0 +1,73 @@
+{{> head}}
+{{> nav}}
+<h1>Редагування вакансії</h1>
+{{> errors}}
+<form novalidate action="/vacancies/{{vacancy.id}}?_method=PUT" method="POST" class="form">
+  <label>Назва посади
+    <input type="text" name="title" value="{{vacancy.title}}">
+  </label>
+  <label>Опис
+    <textarea name="description" rows="4">{{vacancy.description}}</textarea>
+  </label>
+
+  <div class="form-row">
+    {{#if isAdmin}}
+    <label>Роботодавець
+      <select name="employerId">
+        {{#each employers}}
+        <option value="{{this.id}}" {{#if (eq ../vacancy.employerId this.id)}}selected{{/if}}>{{this.companyName}}</option>
+        {{/each}}
+      </select>
+    </label>
+    {{else}}
+    <label>Роботодавець
+      <input type="text" value="{{currentUser.displayName}}" disabled>
+    </label>
+    {{/if}}
+    <label>Категорія
+      <select name="categoryId">
+        {{#each categories}}
+        <option value="{{this.id}}" {{#if (eq ../vacancy.categoryId this.id)}}selected{{/if}}>{{this.name}}</option>
+        {{/each}}
+      </select>
+    </label>
+  </div>
+
+  <div class="form-row">
+    <label>Зарплата від
+      <input type="number" name="salaryMin" min="0" value="{{vacancy.salaryMin}}">
+    </label>
+    <label>Зарплата до
+      <input type="number" name="salaryMax" min="0" value="{{vacancy.salaryMax}}">
+    </label>
+    <label>Валюта
+      <input type="text" name="currency" value="{{vacancy.currency}}" maxlength="3">
+    </label>
+  </div>
+
+  <div class="form-row">
+    <label>Місто
+      <input type="text" name="city" value="{{vacancy.city}}">
+    </label>
+    <label>Тип зайнятості
+      <select name="employmentType">
+        <option value="FULL_TIME" {{#if (eq vacancy.employmentType "FULL_TIME")}}selected{{/if}}>Повна зайнятість</option>
+        <option value="PART_TIME" {{#if (eq vacancy.employmentType "PART_TIME")}}selected{{/if}}>Часткова зайнятість</option>
+        <option value="REMOTE" {{#if (eq vacancy.employmentType "REMOTE")}}selected{{/if}}>Віддалено</option>
+        <option value="INTERNSHIP" {{#if (eq vacancy.employmentType "INTERNSHIP")}}selected{{/if}}>Стажування</option>
+        <option value="CONTRACT" {{#if (eq vacancy.employmentType "CONTRACT")}}selected{{/if}}>Контракт</option>
+      </select>
+    </label>
+  </div>
+
+  <label>Статус вакансії
+    <select name="status">
+      <option value="DRAFT" {{#if (eq vacancy.status "DRAFT")}}selected{{/if}}>Чернетка</option>
+      <option value="OPEN" {{#if (eq vacancy.status "OPEN")}}selected{{/if}}>Відкрита</option>
+      <option value="CLOSED" {{#if (eq vacancy.status "CLOSED")}}selected{{/if}}>Закрита</option>
+    </select>
+  </label>
+
+  <button type="submit" class="btn">Зберегти зміни</button>
+</form>
+{{> footer}}

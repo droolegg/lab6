@@ -1,0 +1,67 @@
+{{> head}}
+{{> nav}}
+<h1>Нова вакансія</h1>
+{{> errors}}
+<form novalidate action="/vacancies" method="POST" class="form">
+  <label>Назва посади
+    <input type="text" name="title" value="{{values.title}}">
+  </label>
+  <label>Опис
+    <textarea name="description" rows="4">{{values.description}}</textarea>
+  </label>
+
+  <div class="form-row">
+    {{#if isAdmin}}
+    <label>Роботодавець
+      <select name="employerId">
+        <option value="">— оберіть —</option>
+        {{#each employers}}
+        <option value="{{this.id}}" {{#if (eq ../values.employerId this.id)}}selected{{/if}}>{{this.companyName}}</option>
+        {{/each}}
+      </select>
+    </label>
+    {{else}}
+    <label>Роботодавець
+      <input type="text" value="{{currentUser.displayName}}" disabled>
+    </label>
+    {{/if}}
+    <label>Категорія
+      <select name="categoryId">
+        <option value="">— оберіть —</option>
+        {{#each categories}}
+        <option value="{{this.id}}" {{#if (eq ../values.categoryId this.id)}}selected{{/if}}>{{this.name}}</option>
+        {{/each}}
+      </select>
+    </label>
+  </div>
+
+  <div class="form-row">
+    <label>Зарплата від
+      <input type="number" name="salaryMin" min="0" value="{{values.salaryMin}}">
+    </label>
+    <label>Зарплата до
+      <input type="number" name="salaryMax" min="0" value="{{values.salaryMax}}">
+    </label>
+    <label>Валюта
+      <input type="text" name="currency" value="{{#if values.currency}}{{values.currency}}{{else}}UAH{{/if}}" maxlength="3">
+    </label>
+  </div>
+
+  <div class="form-row">
+    <label>Місто
+      <input type="text" name="city" value="{{values.city}}">
+    </label>
+    <label>Тип зайнятості
+      <select name="employmentType">
+        <option value="FULL_TIME" {{#if (eq values.employmentType "FULL_TIME")}}selected{{/if}}>Повна зайнятість</option>
+        <option value="PART_TIME" {{#if (eq values.employmentType "PART_TIME")}}selected{{/if}}>Часткова зайнятість</option>
+        <option value="REMOTE" {{#if (eq values.employmentType "REMOTE")}}selected{{/if}}>Віддалено</option>
+        <option value="INTERNSHIP" {{#if (eq values.employmentType "INTERNSHIP")}}selected{{/if}}>Стажування</option>
+        <option value="CONTRACT" {{#if (eq values.employmentType "CONTRACT")}}selected{{/if}}>Контракт</option>
+      </select>
+    </label>
+  </div>
+
+  <button type="submit" class="btn">Опублікувати</button>
+</form>
+{{> footer}}

@@ -1,0 +1,35 @@
+{{> head}}
+{{> nav}}
+<div class="page-header">
+  <h1>Категорії</h1>
+  {{#if isAdmin}}<a class="btn" href="/categories/new">+ Додати категорію</a>{{/if}}
+</div>
+
+{{#if categories.length}}
+<table>
+  <thead>
+    <tr><th>ID</th><th>Назва</th><th>Опис</th><th>Вакансій</th>{{#if isAdmin}}<th></th>{{/if}}</tr>
+  </thead>
+  <tbody>
+    {{#each categories}}
+    <tr>
+      <td>{{this.id}}</td>
+      <td>{{this.name}}</td>
+      <td class="muted">{{this.description}}</td>
+      <td>{{this._count.vacancies}}</td>
+      {{#if @root.isAdmin}}
+      <td class="actions">
+        <a href="/categories/{{this.id}}/edit">Редагувати</a>
+        <form novalidate action="/categories/{{this.id}}?_method=DELETE" method="POST" onsubmit="return confirm('Видалити категорію {{this.name}}?');">
+          <button type="submit">Видалити</button>
+        </form>
+      </td>
+      {{/if}}
+    </tr>
+    {{/each}}
+  </tbody>
+</table>
+{{else}}
+<p class="empty">Категорій ще немає.</p>
+{{/if}}
+{{> footer}}

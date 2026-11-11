@@ -1,0 +1,33 @@
+{{> head}}
+{{> nav}}
+<div class="page-header">
+  <h1>Роботодавці</h1>
+</div>
+
+{{#if employers.length}}
+<table>
+  <thead>
+    <tr><th>ID</th><th>Компанія</th><th>Email</th><th>Місто</th><th>Вакансій</th><th></th></tr>
+  </thead>
+  <tbody>
+    {{#each employers}}
+    <tr>
+      <td>{{this.id}}</td>
+      <td>{{this.companyName}}</td>
+      <td>{{this.email}}</td>
+      <td class="muted">{{this.city}}</td>
+      <td>{{this._count.vacancies}}</td>
+      <td class="actions">
+        <a href="/employers/{{this.id}}/edit">Редагувати</a>
+        <form novalidate action="/employers/{{this.id}}?_method=DELETE" method="POST" onsubmit="return confirm('Видалити роботодавця {{this.companyName}}?');">
+          <button type="submit">Видалити</button>
+        </form>
+      </td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>
+{{else}}
+<p class="empty">Роботодавців ще немає.</p>
+{{/if}}
+{{> footer}}

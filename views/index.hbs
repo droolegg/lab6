@@ -1,0 +1,23 @@
+{{> head}}
+{{> nav}}
+<h1>Сайт вакансій</h1>
+{{#if isAuth}}
+<p>Ви увійшли як <strong>{{currentUser.displayName}}</strong> ({{roleLabel}}).</p>
+{{else}}
+<p>Ви переглядаєте сайт як <strong>відвідувач</strong>. <a href="/login">Увійдіть</a> або <a href="/register">зареєструйтесь</a>, щоб отримати більше можливостей.</p>
+{{/if}}
+<p><a class="btn" href="/vacancies">Переглянути вакансії</a>
+{{#if isAdmin}}<a class="btn secondary" href="/admin">Адмін-панель</a>{{/if}}
+<a class="btn secondary" href="/api">REST API (JSON)</a>
+<a class="btn secondary" href="/api-tester.html">Тестер API</a></p>
+<h2>Можливості за ролями</h2>
+<table>
+  <thead><tr><th>Роль</th><th>Що доступно</th></tr></thead>
+  <tbody>
+    <tr><td>Відвідувач</td><td class="muted">перегляд відкритих вакансій і категорій, вхід та реєстрація</td></tr>
+    <tr><td>Шукач роботи</td><td class="muted">+ подання відгуків, власний кабінет і профіль</td></tr>
+    <tr><td>Роботодавець</td><td class="muted">+ створення та керування власними вакансіями, відгуками на них</td></tr>
+    <tr><td>Адміністратор</td><td class="muted">повний доступ + адмін-панель (/admin): додавання, редагування й видалення записів усіх таблиць</td></tr>
+  </tbody>
+</table>
+{{> footer}}

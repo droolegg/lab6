@@ -1,0 +1,14 @@
+{{> head}}
+{{> nav}}
+{{> adminMenu}}
+<h1>Керування даними системи</h1>
+<p class="muted">Захищена область для адміністратора: додавання, редагування та видалення записів усіх таблиць.</p>
+<div class="cards">
+  {{#each cards}}
+  <a class="card" href="/admin/{{this.key}}">
+    <div class="card-count">{{this.count}}</div>
+    <div>{{this.title}}</div>
+  </a>
+  {{/each}}
+</div>
+{{> footer}}

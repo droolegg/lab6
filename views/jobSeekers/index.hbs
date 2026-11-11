@@ -1,0 +1,35 @@
+{{> head}}
+{{> nav}}
+<div class="page-header">
+  <h1>Шукачі роботи</h1>
+</div>
+
+{{#if jobSeekers.length}}
+<table>
+  <thead>
+    <tr><th>ID</th><th>Ім'я</th><th>Email</th><th>Бажана посада</th><th>Досвід</th><th>Відгуків</th><th></th></tr>
+  </thead>
+  <tbody>
+    {{#each jobSeekers}}
+    <tr>
+      <td>{{this.id}}</td>
+      <td>{{this.firstName}} {{this.lastName}}</td>
+      <td>{{this.email}}</td>
+      <td class="muted">{{this.desiredPosition}}</td>
+      <td>{{this.experienceYears}} р.</td>
+      <td>{{this._count.applications}}</td>
+      <td class="actions">
+        {{#if @root.isAdmin}}        <a href="/jobseekers/{{this.id}}/edit">Редагувати</a>
+        <form novalidate action="/jobseekers/{{this.id}}?_method=DELETE" method="POST" onsubmit="return confirm('Видалити {{this.firstName}} {{this.lastName}}?');">
+          <button type="submit">Видалити</button>
+        </form>
+        {{/if}}
+      </td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>
+{{else}}
+<p class="empty">Шукачів роботи ще немає.</p>
+{{/if}}
+{{> footer}}

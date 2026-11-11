@@ -1,0 +1,31 @@
+{{> head}}
+{{> nav}}
+{{> adminMenu}}
+<h1>{{#if isCreate}}Додати {{resource.singular}}{{else}}Редагування запису №{{recordId}} ({{resource.title}}){{/if}}</h1>
+{{> errors}}
+<form novalidate action="{{formAction}}" method="POST" class="form admin-form" autocomplete="off">
+  {{#each fields}}
+  <label class="{{#if this.half}}half{{/if}}">
+    <span>{{this.label}}{{#if this.required}} <b class="req">*</b>{{/if}}</span>
+    {{#if this.isTextarea}}
+      <textarea name="{{this.name}}" rows="4">{{this.value}}</textarea>
+    {{else}}{{#if this.isSelect}}
+      <select name="{{this.name}}">
+        {{#each this.options}}<option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>{{/each}}
+      </select>
+    {{else}}{{#if this.isPassword}}
+      <input type="password" name="{{this.name}}" autocomplete="new-password">
+    {{else}}{{#if this.isNumber}}
+      <input type="text" inputmode="numeric" name="{{this.name}}" value="{{this.value}}">
+    {{else}}
+      <input type="text" name="{{#unless this.readonly}}{{this.name}}{{/unless}}" value="{{this.value}}" {{#if this.readonly}}disabled{{/if}}>
+    {{/if}}{{/if}}{{/if}}{{/if}}
+    {{#if this.hint}}<small class="muted">{{this.hint}}</small>{{/if}}
+  </label>
+  {{/each}}
+  <div class="form-actions">
+    <button type="submit" class="btn">{{#if isCreate}}Додати{{else}}Зберегти зміни{{/if}}</button>
+    <a class="btn secondary" href="/admin/{{resource.key}}">Скасувати</a>
+  </div>
+</form>
+{{> footer}}

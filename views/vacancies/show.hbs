@@ -1,0 +1,99 @@
+{{> head}}
+{{> nav}}
+
+<div class="page-header">
+  <h1>{{vacancy.title}}</h1>
+  {{#if canManage}}
+  <div class="actions">
+    <a class="btn secondary" href="/vacancies/{{vacancy.id}}/edit">Редагувати</a>
+    <form novalidate action="/vacancies/{{vacancy.id}}?_method=DELETE" method="POST" onsubmit="return confirm('Видалити вакансію?');">
+      <button type="submit" class="btn danger">Видалити</button>
+    </form>
+  </div>
+  {{/if}}
+</div>
+
+<div class="detail-block">
+  <dl>
+    <dt>Статус</dt><dd><span class="badge {{vacancy.status}}">{{vacancy.status}}</span></dd>
+    <dt>Роботодавець</dt><dd>{{vacancy.employer.companyName}}</dd>
+    <dt>Категорія</dt><dd>{{vacancy.category.name}}</dd>
+    <dt>Місто</dt><dd>{{#if vacancy.city}}{{vacancy.city}}{{else}}не вказано{{/if}}</dd>
+    <dt>Зарплата</dt>
+    <dd>
+      {{#if vacancy.salaryMin}}{{vacancy.salaryMin}}{{else}}—{{/if}}
+      {{#if vacancy.salaryMax}} - {{vacancy.salaryMax}}{{/if}} {{vacancy.currency}}
+    </dd>
+    <dt>Тип зайнятості</dt><dd>{{vacancy.employmentType}}</dd>
+    <dt>Опис</dt><dd>{{vacancy.description}}</dd>
+    <dt>Опубліковано</dt><dd>{{formatDate vacancy.createdAt}}</dd>
+  </dl>
+</div>
+
+<h2>Відгуки ({{vacancy._count.applications}})</h2>
+
+{{#if canManage}}
+{{#if applications.length}}
+<table>
+  <thead>
+    <tr><th>Шукач</th><th>Супровідний лист</th><th>Статус</th><th>Дата</th><th></th></tr>
+  </thead>
+  <tbody>
+    {{#each applications}}
+    <tr>
+      <td>{{this.jobSeeker.firstName}} {{this.jobSeeker.lastName}}<br><span class="muted">{{this.jobSeeker.email}}</span></td>
+      <td class="muted">{{#if this.coverLetter}}{{this.coverLetter}}{{else}}—{{/if}}</td>
+      <td>
+        <form novalidate action="/applications/{{this.id}}?_method=PUT" method="POST">
+          <select name="status" class="status-select" onchange="this.form.submit()">
+            <option value="NEW" {{#if (eq this.status "NEW")}}selected{{/if}}>Новий</option>
+            <option value="VIEWED" {{#if (eq this.status "VIEWED")}}selected{{/if}}>Переглянуто</option>
+            <option value="INVITED" {{#if (eq this.status "INVITED")}}selected{{/if}}>Запрошено</option>
+            <option value="REJECTED" {{#if (eq this.status "REJECTED")}}selected{{/if}}>Відхилено</option>
+          </select>
+        </form>
+      </td>
+      <td class="muted">{{formatDate this.createdAt}}</td>
+      <td class="actions">
+        {{#if @root.isAdmin}}
+        <form novalidate action="/applications/{{this.id}}?_method=DELETE" method="POST" onsubmit="return confirm('Видалити відгук?');">
+          <button type="submit">Видалити</button>
+        </form>
+        {{/if}}
+      </td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>
+{{else}}
+<p class="empty">На цю вакансію ще ніхто не відгукнувся.</p>
+{{/if}}
+{{else}}
+<p class="muted">Список відгуків бачить лише роботодавець вакансії та адміністратор.</p>
+{{/if}}
+
+{{#if isJobSeeker}}
+{{#if myApplication}}
+<h2>Ваш відгук</h2>
+<p>Ви вже відгукнулися на цю вакансію. Статус: <span class="badge {{myApplication.status}}">{{myApplication.status}}</span></p>
+{{/if}}
+{{/if}}
+
+{{#if canApply}}
+<h2>Відгукнутися</h2>
+{{> errors}}
+<form novalidate action="/applications" method="POST" class="form">
+  <input type="hidden" name="vacancyId" value="{{vacancy.id}}">
+  <label>Супровідний лист
+    <textarea name="coverLetter" rows="3">{{values.coverLetter}}</textarea>
+  </label>
+  <button type="submit" class="btn">Відгукнутися</button>
+</form>
+{{else}}
+{{> errors}}
+{{#unless isAuth}}
+<p class="muted"><a href="/login">Увійдіть</a> як шукач роботи, щоб відгукнутися на вакансію.</p>
+{{/unless}}
+{{/if}}
+
+{{> footer}}

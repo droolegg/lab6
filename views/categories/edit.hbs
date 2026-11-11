@@ -1,0 +1,14 @@
+{{> head}}
+{{> nav}}
+<h1>Редагування категорії</h1>
+{{> errors}}
+<form novalidate action="/categories/{{category.id}}?_method=PUT" method="POST" class="form">
+  <label>Назва
+    <input type="text" name="name" value="{{category.name}}">
+  </label>
+  <label>Опис
+    <textarea name="description" rows="3">{{category.description}}</textarea>
+  </label>
+  <button type="submit" class="btn">Зберегти зміни</button>
+</form>
+{{> footer}}

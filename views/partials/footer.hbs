@@ -1,0 +1,11 @@
+</main>
+<footer class="footer">KN2023 · Вебпрограмування Node.js · Лабораторна робота №6</footer>
+<script>
+  // Підтвердження небезпечних дій (видалення) через атрибут data-confirm
+  document.addEventListener('submit', function (e) {
+    var msg = e.target.getAttribute && e.target.getAttribute('data-confirm');
+    if (msg && !confirm(msg)) e.preventDefault();
+  });
+</script>
+</body>
+</html>

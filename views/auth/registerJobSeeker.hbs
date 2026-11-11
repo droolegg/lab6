@@ -1,0 +1,46 @@
+{{> head}}
+{{> nav}}
+<h1>Реєстрація шукача роботи</h1>
+{{> errors}}
+<form novalidate action="/register/jobseeker" method="POST" class="form">
+  <div class="form-row">
+    <label>Ім'я
+      <input type="text" name="firstName" value="{{values.firstName}}">
+    </label>
+    <label>Прізвище
+      <input type="text" name="lastName" value="{{values.lastName}}">
+    </label>
+  </div>
+  <label>Email
+    <input type="text" name="email" value="{{values.email}}">
+  </label>
+  <div class="form-row">
+    <label>Пароль
+      <input type="password" name="password">
+    </label>
+    <label>Повторіть пароль
+      <input type="password" name="passwordConfirm">
+    </label>
+  </div>
+  <div class="form-row">
+    <label>Телефон
+      <input type="text" name="phone" value="{{values.phone}}">
+    </label>
+    <label>Місто
+      <input type="text" name="city" value="{{values.city}}">
+    </label>
+  </div>
+  <div class="form-row">
+    <label>Бажана посада
+      <input type="text" name="desiredPosition" value="{{values.desiredPosition}}">
+    </label>
+    <label>Досвід (років)
+      <input type="number" name="experienceYears" min="0" value="{{values.experienceYears}}">
+    </label>
+  </div>
+  <label>Резюме (текст)
+    <textarea name="resume" rows="4">{{values.resume}}</textarea>
+  </label>
+  <button type="submit" class="btn">Зареєструватися</button>
+</form>
+{{> footer}}

@@ -1,0 +1,10 @@
+{{#if errors.length}}
+<div class="error-box">
+  <strong>Виправте помилки:</strong>
+  <ul>
+    {{#each errors}}
+    <li>{{this.msg}}</li>
+    {{/each}}
+  </ul>
+</div>
+{{/if}}

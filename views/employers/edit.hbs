@@ -1,0 +1,28 @@
+{{> head}}
+{{> nav}}
+<h1>Редагування роботодавця</h1>
+{{> errors}}
+<form novalidate action="/employers/{{employer.id}}?_method=PUT" method="POST" class="form">
+  <label>Назва компанії
+    <input type="text" name="companyName" value="{{employer.companyName}}">
+  </label>
+  <label>Email (змінити не можна)
+    <input type="text" value="{{employer.email}}" disabled>
+  </label>
+  <div class="form-row">
+    <label>Телефон
+      <input type="text" name="phone" value="{{employer.phone}}">
+    </label>
+    <label>Місто
+      <input type="text" name="city" value="{{employer.city}}">
+    </label>
+  </div>
+  <label>Сайт
+    <input type="text" name="website" value="{{employer.website}}">
+  </label>
+  <label>Опис компанії
+    <textarea name="description" rows="3">{{employer.description}}</textarea>
+  </label>
+  <button type="submit" class="btn">Зберегти зміни</button>
+</form>
+{{> footer}}

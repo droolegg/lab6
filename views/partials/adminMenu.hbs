@@ -1,0 +1,11 @@
+<div class="admin-layout-head">
+  <div class="admin-title"><a href="/admin">Адмін-панель</a></div>
+  <nav class="admin-menu">
+    {{#each adminMenu}}
+    <a href="/admin/{{this.key}}" class="{{#if this.active}}active{{/if}}">{{this.title}}</a>
+    {{/each}}
+  </nav>
+</div>
+{{#if flash}}
+<div class="flash {{flash.type}}">{{flash.msg}}</div>
+{{/if}}

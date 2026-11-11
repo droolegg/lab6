@@ -1,0 +1,15 @@
+{{> head}}
+{{> nav}}
+<h1>Вхід</h1>
+{{> errors}}
+<form novalidate action="/login" method="POST" class="form">
+  <label>Email
+    <input type="text" name="email" value="{{values.email}}">
+  </label>
+  <label>Пароль
+    <input type="password" name="password">
+  </label>
+  <button type="submit" class="btn">Увійти</button>
+</form>
+<p class="muted">Немає облікового запису? <a href="/register">Зареєструватися</a></p>
+{{> footer}}
