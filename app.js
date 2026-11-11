@@ -6,6 +6,7 @@ const session = require('express-session');
 const passport = require('./config/passport');
 const { ROLE_LABELS, canManageVacancy } = require('./middleware/auth');
 
+require('./config/asyncErrors'); // помилки async-обробників не валять сервер
 const app = express();
 app.set('trust proxy', 1); // за проксі хостингу (HTTPS-термінація)
 
@@ -84,10 +85,26 @@ app.use((req, res) => {
 
 // ---- Обробник помилок ----
 app.use((err, req, res, next) => {
+  if (res.headersSent) return next(err);
   // Помилки API (включно з некоректним JSON у тілі запиту) віддаємо у форматі JSON
-  if (req.originalUrl.startsWith('/api')) return apiErrorHandler(err, req, res, next);
-  console.error(err);
-  res.status(500).send('Внутрішня помилка сервера');
+  if (req.originalUrl.startsWith('/api') && typeof apiErrorHandler === 'function') return apiErrorHandler(err, req, res, next);
+  // Типові помилки бази показуємо зрозуміло, решту — як 500
+  let status = 500;
+  let heading = 'Внутрішня помилка сервера';
+  let message = 'Щось пішло не так. Спробуйте ще раз пізніше.';
+  if (err.code === 'P2003') {
+    status = 409; heading = 'Дію неможливо виконати';
+    message = 'Запис пов’язаний з іншими даними (наприклад, у категорії є вакансії), тому його не можна видалити чи змінити.';
+  } else if (err.code === 'P2002') {
+    status = 409; heading = 'Такий запис уже існує';
+    message = 'Значення, яке має бути унікальним (назва, email), уже використовується.';
+  } else if (err.code === 'P2025') {
+    status = 404; heading = 'Запис не знайдено';
+    message = 'Запис, з яким ви працюєте, не існує або вже видалений.';
+  } else {
+    console.error(err);
+  }
+  res.status(status).render('error', { title: heading, status, heading, message });
 });
 
 const PORT = process.env.PORT || 3000; // на хостингу (Railway) порт задає платформа

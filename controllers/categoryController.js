@@ -63,7 +63,24 @@ exports.update = async (req, res) => {
 };
 
 // DELETE /categories/:id
+// Категорію з вакансіями видалити не можна (onDelete: Restrict) — показуємо зрозуміле повідомлення
 exports.delete = async (req, res) => {
-  await prisma.category.delete({ where: { id: Number(req.params.id) } });
+  const id = Number(req.params.id);
+  const category = await prisma.category.findUnique({
+    where: { id },
+    include: { _count: { select: { vacancies: true } } },
+  });
+  if (category && category._count.vacancies > 0) {
+    const categories = await prisma.category.findMany({
+      include: { _count: { select: { vacancies: true } } },
+      orderBy: { id: 'asc' },
+    });
+    return res.status(409).render('categories/index', {
+      title: 'Категорії',
+      categories,
+      errors: [{ msg: `Категорію «${category.name}» не можна видалити: у ній є вакансії (${category._count.vacancies}).` }],
+    });
+  }
+  if (category) await prisma.category.delete({ where: { id } });
   res.redirect('/categories');
 };

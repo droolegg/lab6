@@ -4,6 +4,7 @@
   <h1>Категорії</h1>
   {{#if isAdmin}}<a class="btn" href="/categories/new">+ Додати категорію</a>{{/if}}
 </div>
+{{> errors}}
 
 {{#if categories.length}}
 <table>
