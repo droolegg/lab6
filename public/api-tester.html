@@ -39,6 +39,11 @@
   table { border-collapse:collapse; width:100%; margin-top:10px; background:var(--surface); border:1px solid var(--border); }
   td, th { text-align:left; padding:5px 10px; border-bottom:1px solid var(--border); font-size:13px; }
   th { color:var(--muted); }
+  .who { font-size:13px; padding:4px 10px; border-radius:12px; background:rgba(139,155,171,.15); color:var(--muted); }
+  .who.in { background:rgba(63,185,80,.18); color:var(--ok); }
+  header button.q { padding:4px 10px; font-size:12px; background:var(--border); border-color:var(--border); }
+  header button.q:hover { background:var(--accent); border-color:var(--accent); }
+  button:disabled { opacity:.5; cursor:not-allowed; }
   .sum { margin-top:12px; font-size:16px; font-weight:700; }
 </style>
 </head>
@@ -47,7 +52,12 @@
   <h1>Тестер REST API</h1>
   <a href="/">← на сайт</a>
   <a href="/api" target="_blank">GET /api</a>
-  <span class="spacer muted">Сесія (cookie) зберігається автоматично, як у Postman</span>
+  <span class="spacer"></span>
+  <span id="who" class="who">Ви: …</span>
+  <button class="q" data-login="admin@example.com|admin123" title="Увійти як адміністратор">Вхід: admin</button>
+  <button class="q" data-login="employer@example.com|employer123" title="Увійти як роботодавець">employer</button>
+  <button class="q" data-login="seeker@example.com|seeker123" title="Увійти як шукач роботи">seeker</button>
+  <button class="q" id="logoutBtn" title="Вийти (стати гостем)">Вийти</button>
 </header>
 <div class="layout">
   <aside id="list"></aside>
@@ -71,6 +81,7 @@
 
     <div id="runBox" hidden>
       <div class="sum" id="sum"></div>
+      <div class="muted" id="note"></div>
       <table><thead><tr><th></th><th>Запит</th><th>Очікувано</th><th>Отримано</th></tr></thead><tbody id="rows"></tbody></table>
     </div>
     <p class="muted">Змінні в запитах ({{appId}}, {{vacancyId}}, {{catId}}, {{empId}}) підставляються автоматично з відповідей попередніх запитів: <span id="vars">—</span></p>
@@ -141,12 +152,47 @@ $('send').onclick = async () => {
     render(r, p && p.method === $('method').value ? p.expect : null);
     saveVar(p, r);
     if (p) $('p' + current).querySelector('.pdot').textContent = r.res.status === p.expect ? '✓' : '✗';
+    await refreshWho();
   } catch (e) { $('status').hidden = false; $('out').hidden = false; $('code').textContent = 'Помилка'; $('code').className = 'code c5'; $('out').textContent = String(e); }
 };
 
 // ---- запуск усіх запитів по порядку ----
+// ---- хто зараз увійшов (сесія спільна з сайтом) ----
+const PROBE = { 'X-Tester-Probe': '1' };
+async function refreshWho() {
+  try {
+    const r = await fetch('/api/auth/me', { headers: PROBE });
+    if (r.ok) { const u = (await r.json()).user; $('who').textContent = 'Ви: ' + u.email + ' (' + u.role + ')'; $('who').className = 'who in'; }
+    else { $('who').textContent = 'Ви: гість (не авторизований)'; $('who').className = 'who'; }
+  } catch (e) { $('who').textContent = 'Ви: ?'; $('who').className = 'who'; }
+}
+const buttons = () => document.querySelectorAll('#send, #runAll, header button');
+const setBusy = (b) => buttons().forEach((x) => { x.disabled = b; });
+
+// швидкий вхід / вихід кнопками вгорі
+document.querySelectorAll('[data-login]').forEach((b) => {
+  b.onclick = async () => {
+    const [email, password] = b.dataset.login.split('|');
+    setBusy(true);
+    try { const r = await request('POST', '/api/auth/login', JSON.stringify({ email, password })); render(r, null); } catch (e) { /* ignore */ }
+    await refreshWho(); setBusy(false);
+  };
+});
+$('logoutBtn').onclick = async () => {
+  setBusy(true);
+  try { const r = await request('POST', '/api/auth/logout', ''); render(r, null); } catch (e) { /* ignore */ }
+  await refreshWho(); setBusy(false);
+};
+
+// ---- запуск усіх запитів по порядку ----
+// Сценарій «відвідувач» вимагає, щоб користувач НЕ був увійшов, тому перед стартом виходимо з акаунта,
+// а після завершення виходимо ще раз (сесія браузера спільна з сайтом).
 $('runAll').onclick = async () => {
-  $('runBox').hidden = false; $('rows').innerHTML = ''; let passed = 0;
+  setBusy(true);
+  $('runBox').hidden = false; $('rows').innerHTML = ''; $('note').textContent = ''; let passed = 0;
+  Object.keys(vars).forEach((k) => delete vars[k]); showVars();
+  try { await fetch('/api/auth/logout', { method: 'POST', headers: PROBE }); } catch (e) { /* ignore */ }
+  await refreshWho();
   for (let i = 0; i < PRESETS.length; i++) {
     const p = PRESETS[i]; let got = '—'; let ok = false;
     try {
@@ -162,9 +208,14 @@ $('runAll').onclick = async () => {
     $('rows').appendChild(tr);
     $('sum').textContent = 'Passed ' + passed + ' / ' + PRESETS.length;
     $('sum').className = 'sum ' + (passed === PRESETS.length ? 'c2' : 'c4');
+    await refreshWho();
   }
+  try { await fetch('/api/auth/logout', { method: 'POST', headers: PROBE }); } catch (e) { /* ignore */ }
+  await refreshWho();
+  $('note').textContent = 'Тест завершено, сесію закрито: тепер ви гість. Для окремих запитів спершу увійдіть кнопками вгорі (admin / employer / seeker).';
+  setBusy(false);
 };
-load(0); showVars();
+load(0); showVars(); refreshWho();
 </script>
 </body>
 </html>
